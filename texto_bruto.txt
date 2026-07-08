@@ -1,0 +1,126 @@
+CADASTRO DE TURMAS
+20262Semestre: Departamento: TODOS Curso: 342 - CIÊNCIA DA INFORMAÇÃO
+Nome da Disciplina H.A. Horários/LocaisTurmaDisciplina
+Vagas
+Ofertadas
+Vagas
+Ocupadas
+Alunos
+Especiais
+Saldo
+Vagas
+Pedidos sem
+vaga Professores Curso
+CAD5103 01342C Administração I 72 12 0 0 12 3422.1830-4 / AUX-ALOCAR Monica Scoz Mendes
+CAD5103 01342D Administração I 72 12 0 0 12 3422.1830-4 / AUX-ALOCAR Professor A Contratar
+CIN7141 01342C Lógica Instrumental I 36 30 0 0 30 3424.1830-2 / AUX-ALOCAR Ilson Wilmar Rodrigues Filho
+CIN7143 01342C Empreendedorismo I 36 20 0 0 20 3423.2020-2 / AUX-ALOCAR Sabrina Borges Ramos de Carvalho
+CIN7144 01342 Tutoria Acadêmica I 18 26 0 0 26 3425.1510-1 / AUX-ALOCAR Ricardo Alexandre Reinaldo de Moraes
+CIN7145 01342 Gestão da Informação 36 28 0 0 28 3425.1620-2 / AUX-ALOCAR Nathalia Berger Werlang
+CIN7201 02342C Sistemas de Organização do
+Conhecimento
+72 26 0 0 26 3426.1830-4 / AUX-ALOCAR Mariana Xavier de Oliveira
+CIN7204 02342C Tutoria Acadêmica II 18 26 0 0 26 3425.1710-1 / CED-D109 Ricardo Alexandre Reinaldo de Moraes
+CIN7301 03342A Introdução à Representação Temática 36 12 0 0 12 3423.1010-2 / AUX-ALOCAR Mariana Xavier de Oliveira
+CIN7301 03342C Introdução à Representação Temática 36 12 0 0 12 3423.2020-2 / AUX-ALOCAR Professor A Contratar
+CIN7302 03342A Introdução à Representação Descritiva 36 12 0 0 12 3426.1010-2 / CED-LBPREV Maria Zanela
+CIN7302 03342C Introdução à Representação Descritiva 36 12 0 0 12 3425.1830-2 / AUX-ALOCAR Edgar Bisset Alvarez
+CIN7303 03342A Metodologia da Pesquisa 36 12 0 0 12 3422.1010-2 / CED-LBPREV Luis Roberto Sousa Mendes
+CIN7303 03342C Metodologia da Pesquisa 36 12 0 0 12 3422.2020-2 / CED-103 C Maria Zanela
+CIN7304 03342A Introdução à Bancos de Dados 36 12 0 0 12 3423.0820-2 / CED-LBTEC Gustavo Medeiros de Araújo
+CIN7304 03342C Introdução à Bancos de Dados 36 12 0 0 12 3425.2020-2 / CED-102 C Gustavo Medeiros de Araújo
+CIN7306 03342A Competência Informacional 36 12 0 0 12 3426.0820-2 / CED-LBPREV Maria Zanela
+CIN7306 03342C Competência Informacional 36 12 0 0 12 3422.1830-2 / CED-103 C Maria Zanela
+CIN7309 02342C Gestão de Processos Organizacionais 72 24 0 0 24 3424.1830-4 / CED-LBTEC Professor A Contratar
+CIN7309 03342A Gestão de Processos Organizacionais 72 24 0 0 24 3424.0820-4 / CED-LBTEC Professor A Contratar
+CIN7401 04342A Estudos Métricos da Informação 72 12 0 0 12 3422.0820-4 / CED-103 C Adilson Luiz Pinto
+CIN7401 04342C Estudos Métricos da Informação 72 12 0 0 12 3423.1830-4 / CED-103 C Adilson Luiz Pinto
+CIN7402 04342A Editoração Científica 36 12 0 0 12 3426.1010-2 / CED-LBTEC Enrique Muriel Torrado
+de 3Página: 1SeTIC - Superintendência de Governança Eletrônica e Tecnologia da Informação e Comunicação
+CADASTRO DE TURMAS
+20262Semestre: Departamento: TODOS Curso: 342 - CIÊNCIA DA INFORMAÇÃO
+Nome da Disciplina H.A. Horários/LocaisTurmaDisciplina
+Vagas
+Ofertadas
+Vagas
+Ocupadas
+Alunos
+Especiais
+Saldo
+Vagas
+Pedidos sem
+vaga Professores Curso
+CIN7402 04342C Editoração Científica 36 12 0 0 12 3426.1830-2 / CED-103 C Enrique Muriel Torrado
+CIN7403 04342C Acessibilidade e Inclusão Digital 36 24 0 0 24 3422.1710-1 / CED-LBPREV
+4.1710-1 / CED-LBPREV
+Ilson Wilmar Rodrigues Filho
+CIN7404 04342A Planejamento Estratégico 36 12 0 0 12 3424.0730-1 / CED-103 C
+6.0730-1 / CED-103 C
+Maria Zanela
+CIN7404 04342C Planejamento Estratégico 36 12 0 0 12 3426.2020-2 / CED-LBTEC Sabrina Borges Ramos de Carvalho
+CIN7405 04342A Projeto de Informatização 36 12 0 0 12 3425.1010-2 / CED-LBTEC Flavio Augusto Carraro
+CIN7405 04342C Projeto de Informatização 36 12 0 0 12 3424.2020-2 / CED-LBPREV Flavio Augusto Carraro
+CIN7406 04342A Preservação Digital 36 12 0 0 12 3426.0820-2 / CED-LBTEC Enrique Muriel Torrado
+CIN7406 04342C Preservação Digital 36 12 0 0 12 3422.2020-2 / CED-LBPREV Sabrina Borges Ramos de Carvalho
+CIN7412 02342C Marketing da Informação 36 24 0 0 24 3425.2020-2 / AUX-ALOCAR Sabrina Borges Ramos de Carvalho
+CIN7412 04342A Marketing da Informação 36 24 0 0 24 3423.1010-2 / CED-004 D Sonali Paula Molin Bedin
+CIN7501 05342 Arquitetura da Informação e Usabilidade 36 26 0 0 26 3422.1830-2 / AUX-ALOCAR Márcio Matias
+CIN7502 05342 Mineração de Texto 36 26 0 0 26 3425.2020-2 / AUX-ALOCAR Flavio Augusto Carraro
+CIN7503 05342 Bancos de Dados 36 26 0 0 26 3426.2020-2 / AUX-ALOCAR Flavio Augusto Carraro
+CIN7504 05342 Gerenciamento de Projetos 36 26 0 0 26 3426.1830-2 / AUX-ALOCAR Sabrina Borges Ramos de Carvalho
+CIN7505 05342 Estágio em Ciência da Informação 432 26 0 0 26 3422.1420-2 / CED-105 B Nathalia Berger Werlang
+CIN7601 06342 Linked Data 36 26 0 0 26 3424.1830-2 / AUX-ALOCAR Flavio Augusto Carraro
+CIN7602 06342 Mídias Sociais 36 26 0 0 26 3426.1830-2 / AUX-ALOCAR Flavio Augusto Carraro
+CIN7603 06342 Empreendedorismo II 72 26 0 0 26 3422.1830-4 / AUX-ALOCAR Nathalia Berger Werlang
+CIN7604 06342 TCC 74 26 0 0 26 3424.1620-2 / AUX-ALOCAR Márcio Matias
+CIN7903 06342 Inteligência Competitiva 36 30 0 0 30 3423.1830-2 / AUX-ALOCAR Professor A Contratar
+CIN7904 06342 Avaliação de Desempenho 36 26 0 0 26 3425.1830-2 / AUX-ALOCAR Sabrina Borges Ramos de Carvalho
+CIN7905 05342 Teoria da Decisão 36 26 0 0 26 3423.1830-2 / AUX-ALOCAR Sabrina Borges Ramos de Carvalho
+CIN7907 02342 Lógica Aplicada I 72 26 0 0 26 3423.1830-4 / AUX-ALOCAR Flavio Augusto Carraro
+de 3Página: 2SeTIC - Superintendência de Governança Eletrônica e Tecnologia da Informação e Comunicação
+CADASTRO DE TURMAS
+20262Semestre: Departamento: TODOS Curso: 342 - CIÊNCIA DA INFORMAÇÃO
+Nome da Disciplina H.A. Horários/LocaisTurmaDisciplina
+Vagas
+Ofertadas
+Vagas
+Ocupadas
+Alunos
+Especiais
+Saldo
+Vagas
+Pedidos sem
+vaga Professores Curso
+CIN7913 04342 Lógica Instrumental II
+[Cancelada]
+36 0 0 0 0 342
+CIN7917 05342 Visualização da Informação 36 26 0 0 26 3424.1830-2 / AUX-ALOCAR Márcio Matias
+CIN7917 06342 Visualização da Informação
+[Cancelada]
+36 0 0 0 0 342
+CIN7925 01342 Introdução a Algoritmos 36 26 0 0 26 3425.2020-2 / AUX-ALOCAR Ricardo Alexandre Reinaldo de Moraes
+CIN7927 05342 Gestão da Informação Pública 36 26 0 0 26 3422.1830-2 / AUX-ALOCAR Sabrina Borges Ramos de Carvalho
+CIN7935 06342 Liderança e Gerência 36 26 0 0 26 3425.1830-2 / CED-LBCON Sonali Paula Molin Bedin
+CIN7936 03342A Proteção de Dados Pessoais 36 12 0 0 12 3422.0820-2 / CED-LBPREV Marcelo Minghelli
+CIN7936 03342C Proteção de Dados Pessoais 36 12 0 0 12 3423.1830-2 / CED-102 C Marcelo Minghelli
+CIN7938 05342 Segurança da Informação 36 30 0 0 30 3423.2020-2 / AUX-ALOCAR Professor A Contratar
+CIN7943 01342 Experiência do Usuário (UX) User
+Experience
+36 26 0 0 26 3424.2020-2 / AUX-ALOCAR Márcio Matias
+CIN7945 05342 Fontes de Informação Tecnológica 36 26 0 0 26 3422.2020-2 / AUX-ALOCAR Márcio Matias
+CIN7946 05342 Pitch de Carreira 36 26 0 0 26 3425.2020-2 / CED-LBCON Sonali Paula Molin Bedin
+CIN7950 06342 Programa de Intercâmbio I 0 12 0 0 12 342
+HST7921 03342A História do Brasil Contemporâneo 72 12 0 0 12 3425.0820-4 / CED-LBPREV Roselane Neckel
+HST7921 03342C História do Brasil Contemporâneo 72 12 0 0 12 3426.1830-4 / CED-LBPREV Roselane Neckel
+INE5111 02342A Estatística Aplicada I 72 24 0 0 24 3423.0820-2 / CED-LBPREV
+4.1010-2 / CED-LBPREV
+Vera do Carmo Comparsi de Vargas
+INE5111 02342C Estatística Aplicada I 72 24 0 0 24 3422.1830-2 / CED-LBPREV
+5.1830-2 / CED-102 C
+Manoella Reis Cardenuto
+LLV7802 01342C Leitura e Produção do Texto 72 12 0 0 12 3426.1830-4 / AUX-ALOCAR Gabriela Rempel
+LLV7802 01342D Leitura e Produção do Texto 72 12 0 0 12 3426.1830-4 / AUX-ALOCAR Silvia Ines Coneglian Carrilho de Vasconcelos
+MTM3110 01342 Cálculo 1 72 32 0 0 32 3423.1830-2 / AUX-ALOCAR
+5.1830-2 / AUX-ALOCAR
+Francisco Carlos Caramello Junior
+de 3Página: 3SeTIC - Superintendência de Governança Eletrônica e Tecnologia da Informação e Comunicação
