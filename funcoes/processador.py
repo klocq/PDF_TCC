@@ -141,7 +141,8 @@ def processar_texto_bruto(texto_bruto):
                 dados_estruturados.append(registro)
 
     # 4. GERAÇÃO DO ARQUIVO TEXTUAL FINAL
-    with open("relatorio_auditoria.txt", "w", encoding="utf-8") as f:
+    # 4. GERAÇÃO DO ARQUIVO TEXTUAL FINAL (Voltando um nível com ../)
+    with open("../resultados/relatorio_auditoria.txt", "w", encoding="utf-8") as f:
         f.write("="*60 + "\n")
         f.write("RELATÓRIO DE AUDITORIA DAS TURMAS EXTRAÍDAS (VERSÃO IMUNE A CABEÇALHOS)\n")
         f.write("="*60 + "\n")
@@ -156,8 +157,9 @@ def processar_texto_bruto(texto_bruto):
                 f"  • PROFESSOR:   {reg['Professor']}\n"
                 f"{'-'*50}\n"
             )
-            print(bloco_texto, end="")
+            #print(bloco_texto, end="")
             f.write(bloco_texto)
             
     print(f"\n[SUCESSO] Relatório imune salvo em 'relatorio_auditoria.txt'.")
+    print(dados_estruturados)
     return dados_estruturados

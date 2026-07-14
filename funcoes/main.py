@@ -3,12 +3,12 @@ from processador import processar_texto_bruto
 from transformador_pandas import aplicar_transformacoes_pandas, exportar_relatorios_finais
 
 def rodar_pipeline():
-    # 1. Definição dos arquivos de entrada e saída
-    arquivo_pdf_20261 = "CADASTRO_TURMAS_20261.pdf"
-    arquivo_pdf_20262 = "CADASTRO_TURMAS_20262.pdf"
+    # Adicionando o "r" antes das aspas para neutralizar as barras invertidas do Windows:
+    arquivo_pdf_20261 = r"C:\Users\cadum\Desktop\Projeto_TCC\PDF_TCC\arquivos_entrada\CADASTRO_TURMAS_20261.pdf"
+    arquivo_pdf_20262 = r"C:\Users\cadum\Desktop\Projeto_TCC\PDF_TCC\arquivos_entrada\CADASTRO_TURMAS_20262.pdf"
     
-    arquivo_excel_saida_20261 = "Grade_Horarios_UFSC_20261.xlsx"
-    arquivo_excel_saida_20262 = "Grade_Horarios_UFSC_20262.xlsx"
+    arquivo_excel_saida_20261 = r"C:\Users\cadum\Desktop\Projeto_TCC\PDF_TCC\resultados\Grade_Horarios_UFSC_20261.xlsx"
+    arquivo_excel_saida_20262 = r"C:\Users\cadum\Desktop\Projeto_TCC\PDF_TCC\resultados\Grade_Horarios_UFSC_20262.xlsx"
     
     print("=" * 60)
     print("INICIANDO PIPELINE AUTOMATIZADO (PDF -> PANDAS -> EXCEL)")
