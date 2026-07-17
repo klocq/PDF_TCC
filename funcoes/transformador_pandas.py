@@ -7,25 +7,46 @@ from openpyxl.styles import Font  # Importação oficial de fontes do Openpyxl
 def mapear_fase_e_tipo(codigo):
     codigo = str(codigo).strip().upper()
     
+    # 1. EXCEÇÕES EXPLICITADAS POR VOCÊ (Definidas manualmente)
+    excecoes = {
+        # --- 1ª Fase ---
+        "CIN7925": ("1ª Fase", "Obrigatória"),  # Introdução a Algoritmos (Mesmo sendo 79)
+        "CIN7943": ("1ª Fase", "Obrigatória"),  # Experiência do Usuário - UX (Mesmo sendo 79)
+        "LLV7802": ("1ª Fase", "Obrigatória"),  # Leitura e Produção de Texto (Outro departamento)
+        "MTM3110": ("1ª Fase", "Obrigatória"),  # Cálculo I (Outro departamento)
+        "CAD5103": ("1ª Fase", "Obrigatória"),  # Administração I (Outro departamento)
+        
+        # --- 2ª Fase ---
+        "INE5111": ("2ª Fase", "Obrigatória"),  # Estatística Aplicada I (Outro departamento)
+        "CIN7907": ("2ª Fase", "Obrigatória"),  # Lógica Aplicada I (Mesmo sendo 79)
+        "CIN7412": ("2ª Fase", "Obrigatória"),
+        # --- 3ª Fase ---
+        "CIN7936": ("3ª Fase", "Obrigatória"),  # Proteção de Dados Pessoais (Mesmo sendo 79)
+        "HST7921": ("3ª Fase", "Obrigatória"),  # História do Brasil Contemporâneo (Outro departamento)
+        
+        # --- Optativas Específicas ---
+        "CIN7903": ("Optativa", "Optativa"),    # Inteligência Competitiva (Como optativa por enquanto)
+    }
+    
+    # Se for uma exceção, retorna imediatamente o valor mapeado
+    if codigo in excecoes:
+        return excecoes[codigo]
+        
+    # 2. LEITURA INTELIGENTE DO CÓDIGO (Regra Geral para disciplinas CIN7)
     if codigo.startswith("CIN"):
         match = re.search(r'CIN7(\d)', codigo)
         if match:
             digito_fase = match.group(1)
+            
+            # Se for CIN79 (e não caiu nas exceções de 1ª, 2ª ou 3ª fase acima), vira Optativa
             if digito_fase == "9":
                 return "Optativa", "Optativa"
+                
+            # Para qualquer outro dígito de 1 a 6 (ex: CIN7405 vira 4ª Fase)
             elif digito_fase in ["1", "2", "3", "4", "5", "6"]:
                 return f"{digito_fase}ª Fase", "Obrigatória"
-    
-    obrigatorias_outros = {
-        "CAD5103": ("1ª Fase", "Obrigatória"),
-        "MTM3110": ("1ª Fase", "Obrigatória"),
-        "LLV7802": ("1ª Fase", "Obrigatória"),
-        "INE5111": ("4ª Fase", "Obrigatória"),
-    }
-    
-    if codigo in obrigatorias_outros:
-        return obrigatorias_outros[codigo]
-        
+                
+    # Caso seja de outro departamento e não foi mapeado nas exceções
     return "Outros / Eletiva", "Optativa"
 
 

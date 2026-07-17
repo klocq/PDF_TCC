@@ -1,4 +1,77 @@
 import re
+import pandas as pd
+
+# 1. Dicionário oficial e corrigido do Novo Currículo (PPC 2025/2026)
+DISCIPLINAS_NOVO_CURRICULO = {
+    # --- 1ª FASE ---
+    "CAD5103": 1,  # Administração I
+    "CIN7141": 1,  # Lógica Instrumental I
+    "CIN7143": 1,  # Empreendedorismo I
+    "CIN7144": 1,  # Tutoria Acadêmica I
+    "CIN7145": 1,  # Gestão da Informação
+    "CIN7925": 1,  # Introdução a Algoritmos
+    "CIN7943": 1,  # Experiência do Usuário - UX
+    "LLV7802": 1,  # Leitura e Produção de Texto
+    "MTM3110": 1,  # Cálculo I
+
+    # --- 2ª FASE ---
+    "CIN7201": 2,  # Sistemas de Organização do Conhecimento
+    "CIN7204": 2,  # Tutoria Acadêmica II
+    "CIN7309": 2,  # Gestão de Processos Organizacionais
+    "CIN7412": 2,  # Marketing da Informação
+    "CIN7907": 2,  # Lógica Aplicada I
+    "INE5111": 2,  # Estatística Aplicada I
+
+    # --- 3ª FASE ---
+    "CIN7000": 3,  # Laboratório de Empreendimentos Sociais
+    "CIN7301": 3,  # Introdução à Representação Temática
+    "CIN7302": 3,  # Introdução à Representação Descritiva
+    "CIN7304": 3,  # Introdução à Bancos de Dados
+    "CIN7501": 3,  # Arquitetura da Informação e Usabilidade
+    "CIN7936": 3,  # Proteção de Dados Pessoais
+    "MTM3687": 3,  # Aprendizado de Máquina Aplicado
+
+    # --- 4ª FASE ---
+    "CIN1111": 4,  # Fontes de Informação Tecnológica
+    "CIN7401": 4,  # Estudos Métricos da Informação
+    "CIN7403": 4,  # Acessibilidade e Inclusão Digital
+    "CIN7404": 4,  # Planejamento Estratégico
+    "CIN7411": 4,  # Análise Exploratória de Dados
+    "CIN7503": 4,  # Bancos de Dados
+    "CIN7903": 4,  # Inteligência Competitiva
+    "CIN7938": 4,  # Segurança da Informação
+    "HST7921": 4,  # História do Brasil Contemporâneo
+
+    # --- 5ª FASE ---
+    "CIN7502": 5,  # Mineração de Texto
+    "CIN7504": 5,  # Gerenciamento de Projetos
+    "CIN7505": 5,  # Estágio em Ciência da Informação
+    "CIN7933": 5,  # Gestão da Inovação
+
+    # --- 6ª FASE ---
+    "CIN7601": 6,  # Linked Data
+    "CIN7602": 6,  # Mídias Sociais
+    "CIN7603": 6,  # Empreendedorismo II
+    "CIN7604": 6,  # TCC
+}
+
+def aplicar_fases_novas(dados_estruturados):
+    """
+    Recebe a lista de dicionários das turmas extraídas do PDF
+    e adiciona a fase correta do currículo de 2026.1
+    """
+    df = pd.DataFrame(dados_estruturados)
+    
+    # Garante que a coluna de código esteja limpa e formatada como texto
+    df['Código da Disciplina'] = df['Código da Disciplina'].astype(str).str.strip()
+    
+    # Aplica o mapeamento da fase do Novo Currículo.
+    # Caso a matéria não esteja mapeada (optativas gerais ou matérias antigas em transição), assume "Optativa"
+    df['Fase'] = df['Código da Disciplina'].map(DISCIPLINAS_NOVO_CURRICULO).fillna("Optativa")
+    
+    # Converte de volta para lista de dicionários para o resto do código
+    return df.to_dict(orient="records")
+
 
 def processar_texto_bruto(texto_bruto):
     dados_estruturados = []
@@ -23,7 +96,7 @@ def processar_texto_bruto(texto_bruto):
             continue
             
         # 1. FILTRO DE CABEÇALHOS DO DOCUMENTO
-        linha_maiuscula = linha.upper()
+        linha_maiuscula = concat_line = linha.upper()
         if ("SEMESTRE:" in linha_maiuscula or 
             "CADASTRO DE TURMAS" in linha_maiuscula or 
             "SETIC" in linha_maiuscula or
@@ -140,7 +213,10 @@ def processar_texto_bruto(texto_bruto):
                 }
                 dados_estruturados.append(registro)
 
-    # 4. GERAÇÃO DO ARQUIVO TEXTUAL FINAL
+    # === [NOVO] APLICAÇÃO DO MAPEAMENTO DE CURRÍCULO 2026 E FILTRAGEM ===
+    # Esta função limpa as turmas obsoletas e anexa a fase correta automaticamente
+    dados_estruturados = aplicar_fases_novas(dados_estruturados)
+
     # 4. GERAÇÃO DO ARQUIVO TEXTUAL FINAL (Voltando um nível com ../)
     with open("../resultados/relatorio_auditoria.txt", "w", encoding="utf-8") as f:
         f.write("="*60 + "\n")
@@ -152,12 +228,12 @@ def processar_texto_bruto(texto_bruto):
                 f"[TURMA DETECTADA Nº {idx}]\n"
                 f"  • CÓDIGO/TURMA: {reg['Código da Disciplina']} | {reg['Turma']}\n"
                 f"  • DISCIPLINA:  {reg['Nome da Disciplina']}\n"
+                f"  • FASE ATRIBUÍDA: {reg['Fase']}\n"  # Agora o relatório de auditoria mostra a fase de forma organizada!
                 f"  • H.A. / VAGAS: {reg['Horas Aula']} H.A. | {reg['Ofertas']} Vagas\n"
                 f"  • HORÁRIOS:    {reg['Horário/Local']}\n"
                 f"  • PROFESSOR:   {reg['Professor']}\n"
                 f"{'-'*50}\n"
             )
-            #print(bloco_texto, end="")
             f.write(bloco_texto)
             
     print(f"\n[SUCESSO] Relatório imune salvo em 'relatorio_auditoria.txt'.")
