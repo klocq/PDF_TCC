@@ -1,3 +1,3 @@
 # Chaves de autenticação do Supabase
-SUPABASE_URL = "https://hbblkforpxuoxekxkyvg.supabase.co"
+SUPABASE_URL = "https://hbblkforpxuoxekxkyvg.supabase.co/rest/v1"
 SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhiYmxrZm9wcnh1b3hleGt4eXZnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQzMDYxNDEsImV4cCI6MjA5OTg4MjE0MX0.iRBHkz9ejw2J1qVU2G5-urwlLKCySCyGPT3CpmmYbNg"

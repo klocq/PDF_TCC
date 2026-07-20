@@ -1,53 +1,41 @@
 from extrator import extrair_texto_pdf
 from processador import processar_texto_bruto
-from transformador_pandas import aplicar_transformacoes_pandas, exportar_relatorios_finais
+from tratamento_dados import aplicar_tratamento_completo
+from transformador_pandas import exportar_relatorios_finais
+from banco import salvar_turmas_no_banco
+
 
 def rodar_pipeline():
-    # Adicionando o "r" antes das aspas para neutralizar as barras invertidas do Windows:
+    # Caminhos dos arquivos
     arquivo_pdf_20261 = r"C:\Users\cadum\Desktop\Projeto_TCC\PDF_TCC\arquivos_entrada\CADASTRO_TURMAS_20261.pdf"
     arquivo_pdf_20262 = r"C:\Users\cadum\Desktop\Projeto_TCC\PDF_TCC\arquivos_entrada\CADASTRO_TURMAS_20262.pdf"
-    
-    arquivo_excel_saida_20261 = r"C:\Users\cadum\Desktop\Projeto_TCC\PDF_TCC\resultados\Grade_Horarios_UFSC_20261.xlsx"
-    arquivo_excel_saida_20262 = r"C:\Users\cadum\Desktop\Projeto_TCC\PDF_TCC\resultados\Grade_Horarios_UFSC_20262.xlsx"
-    
-    print("=" * 60)
-    print("INICIANDO PIPELINE AUTOMATIZADO (PDF -> PANDAS -> EXCEL)")
-    print("=" * 60)
-    
-    # -------------------------------------------------------------
-    # PROCESSAMENTO DO SEMESTRE 20261
-    # -------------------------------------------------------------
-    print("\n>>> [PASSO 1/2] Processando Semestre 20261...")
-    
-    # Extração e Limpeza Textual Bruta
-    texto_bruto_20261 = extrair_texto_pdf(arquivo_pdf_20261)
-    dados_estruturados_20261 = processar_texto_bruto(texto_bruto_20261)
-    
-    # Transformação Inteligente com Pandas e Geração das Grades
-    if dados_estruturados_20261:
-        df_enriquecido_20261 = aplicar_transformacoes_pandas(dados_estruturados_20261)
-        exportar_relatorios_finais(df_enriquecido_20261, arquivo_excel_saida_20261)
-    else:
-        print("[ALERTA] Nenhuma turma encontrada para o semestre 20261.")
 
-    # -------------------------------------------------------------
-    # PROCESSAMENTO DO SEMESTRE 20262
-    # -------------------------------------------------------------
-    print("\n>>> [PASSO 2/2] Processando Semestre 20262...")
-    
-    # Extração e Limpeza Textual Bruta
-    texto_bruto_20262 = extrair_texto_pdf(arquivo_pdf_20262)
-    dados_estruturados_20262 = processar_texto_bruto(texto_bruto_20262)
-    
-    # Transformação Inteligente com Pandas e Geração das Grades
-    if dados_estruturados_20262:
-        df_enriquecido_20262 = aplicar_transformacoes_pandas(dados_estruturados_20262)
-        exportar_relatorios_finais(df_enriquecido_20262, arquivo_excel_saida_20262)
-    else:
-        print("[ALERTA] Nenhuma turma encontrada para o semestre 20262.")
+    arquivo_excel_20261 = r"C:\Users\cadum\Desktop\Projeto_TCC\PDF_TCC\resultados\Grade_Horarios_UFSC_20261.xlsx"
+    arquivo_excel_20262 = r"C:\Users\cadum\Desktop\Projeto_TCC\PDF_TCC\resultados\Grade_Horarios_UFSC_20262.xlsx"
+
+    lista_processamento = [
+        (arquivo_pdf_20261, arquivo_excel_20261),
+        (arquivo_pdf_20262, arquivo_excel_20262)
+    ]
+
+    print("=" * 60)
+    print("INICIANDO PIPELINE (PDF -> TRATAMENTO -> EXCEL -> SUPABASE)")
+    print("=" * 60)
+
+    for pdf_input, excel_output in lista_processamento:
+        texto_bruto = extrair_texto_pdf(pdf_input)
+        dados_brutos = processar_texto_bruto(texto_bruto)
+
+        if dados_brutos:
+            # Novo modulo de tratamento centralizado
+            df_tratado = aplicar_tratamento_completo(dados_brutos, caminho_pdf=pdf_input)
+            
+            # Geracao de relatorios e envio ao banco
+            exportar_relatorios_finais(df_tratado, excel_output)
+            salvar_turmas_no_banco(df_tratado)
 
     print("\n" + "=" * 60)
-    print("PIPELINE EXECUTADO COM SUCESSO! PLANILHAS MODULARES GERADAS.")
+    print("PIPELINE EXECUTADO COM SUCESSO!")
     print("=" * 60)
 
 
