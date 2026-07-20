@@ -12,3 +12,6 @@ source ../../.venv/Scripts/activate
 
 Depois é só executar:
 python main.py
+
+ou 
+streamlit run app.py

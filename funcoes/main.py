@@ -1,3 +1,5 @@
+# pipeline.py (ou main.py)
+import os
 from extrator import extrair_texto_pdf
 from processador import processar_texto_bruto
 from tratamento_dados import aplicar_tratamento_completo
@@ -5,39 +7,29 @@ from transformador_pandas import exportar_relatorios_finais
 from banco import salvar_turmas_no_banco
 
 
-def rodar_pipeline():
-    # Caminhos dos arquivos
-    arquivo_pdf_20261 = r"C:\Users\cadum\Desktop\Projeto_TCC\PDF_TCC\arquivos_entrada\CADASTRO_TURMAS_20261.pdf"
-    arquivo_pdf_20262 = r"C:\Users\cadum\Desktop\Projeto_TCC\PDF_TCC\arquivos_entrada\CADASTRO_TURMAS_20262.pdf"
+def processar_pdf_individual(caminho_pdf_entrada: str, caminho_excel_saida: str):
+    """
+    Executa o pipeline completo para um unico arquivo PDF enviado.
+    """
+    print(f"\n>>> Processando arquivo: {caminho_pdf_entrada}")
 
-    arquivo_excel_20261 = r"C:\Users\cadum\Desktop\Projeto_TCC\PDF_TCC\resultados\Grade_Horarios_UFSC_20261.xlsx"
-    arquivo_excel_20262 = r"C:\Users\cadum\Desktop\Projeto_TCC\PDF_TCC\resultados\Grade_Horarios_UFSC_20262.xlsx"
+    # 1. Extração e Limpeza Textual
+    texto_bruto = extrair_texto_pdf(caminho_pdf_entrada)
+    dados_brutos = processar_texto_bruto(texto_bruto)
 
-    lista_processamento = [
-        (arquivo_pdf_20261, arquivo_excel_20261),
-        (arquivo_pdf_20262, arquivo_excel_20262)
-    ]
+    if not dados_brutos:
+        return False, "Nenhuma turma encontrada no arquivo PDF fornecido."
 
-    print("=" * 60)
-    print("INICIANDO PIPELINE (PDF -> TRATAMENTO -> EXCEL -> SUPABASE)")
-    print("=" * 60)
+    # 2. Tratamento Inteligente com Pandas (Separação de colunas e Semestre)
+    df_tratado = aplicar_tratamento_completo(dados_brutos, caminho_pdf=caminho_pdf_entrada)
 
-    for pdf_input, excel_output in lista_processamento:
-        texto_bruto = extrair_texto_pdf(pdf_input)
-        dados_brutos = processar_texto_bruto(texto_bruto)
+    # 3. Exportação para Excel (.xlsx)
+    exportar_relatorios_finais(df_tratado, caminho_excel_saida)
 
-        if dados_brutos:
-            # Novo modulo de tratamento centralizado
-            df_tratado = aplicar_tratamento_completo(dados_brutos, caminho_pdf=pdf_input)
-            
-            # Geracao de relatorios e envio ao banco
-            exportar_relatorios_finais(df_tratado, excel_output)
-            salvar_turmas_no_banco(df_tratado)
+    # 4. Ingestão na Nuvem (Supabase)
+    salvar_turmas_no_banco(df_tratado)
 
-    print("\n" + "=" * 60)
-    print("PIPELINE EXECUTADO COM SUCESSO!")
-    print("=" * 60)
+    semestre_detectado = df_tratado["Semestre"].iloc[0]
+    total_turmas = len(df_tratado)
 
-
-if __name__ == "__main__":
-    rodar_pipeline()
+    return True, f"Sucesso! {total_turmas} turmas do semestre {semestre_detectado} foram processadas e enviadas ao banco."
