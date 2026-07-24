@@ -8,7 +8,6 @@ from openpyxl.styles import Font
 # -------------------------------------------
 # Decomposição do Código de Horário UFSC
 # -------------------------------------------
-# Converte a sintaxe da UFSC (ex: 2.0820-2) em blocos de dias da semana e horários formatados.
 def quebrar_horario_ufsc(string_horario):
     mapa_dias = {
         '2': 'Segunda-feira', '3': 'Terça-feira', '4': 'Quarta-feira',
@@ -57,7 +56,6 @@ def quebrar_horario_ufsc(string_horario):
 # -------------------------------------------
 # Geração da Matriz de Grade Horária Por Fase
 # -------------------------------------------
-# Monta a tabela em formato de calendário (Pivot Table) para visualização na aba de cada fase.
 def gerar_grade_horaria_fase(df_fase):
     todos_dias = ["Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira"]
     todos_horarios = [
@@ -95,8 +93,6 @@ def gerar_grade_horaria_fase(df_fase):
 # -------------------------------------------
 # Exportação Formatada para o Excel (.xlsx)
 # -------------------------------------------
-# Gera o arquivo Excel incluindo a aba 'Cadastro Geral' (com Semestre, Horário e Local)
-# e as abas estilizadas por Fase com legendas.
 def exportar_relatorios_finais(dados_finais: pd.DataFrame, nome_arquivo_excel: str):
     print(f"[Excel] Gerando arquivo Excel final com colunas divididas...")
 
@@ -105,7 +101,9 @@ def exportar_relatorios_finais(dados_finais: pd.DataFrame, nome_arquivo_excel: s
 
         for fase_num in range(1, 7):
             fase_str = f"{fase_num}ª Fase"
-            df_fase = dados_finais[dados_finais["Fase"] == fase_str]
+            
+            # ✅ CORREÇÃO AQUI: Usa str.contains para incluir tanto '5ª Fase' quanto '5ª Fase (Optativa)'
+            df_fase = dados_finais[dados_finais["Fase"].astype(str).str.contains(fase_str, na=False)]
 
             if not df_fase.empty:
                 grade_semanal = gerar_grade_horaria_fase(df_fase)

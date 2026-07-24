@@ -9,29 +9,31 @@ SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
 
 
-# -------------------------------------------
-# Conexão com o Supabase
-# -------------------------------------------
 def conectar_supabase() -> Client:
     return create_client(SUPABASE_URL, SUPABASE_KEY)
 
 
-# -------------------------------------------
-# Envio de Dados via UPSERT no Supabase
-# -------------------------------------------
-# Mapeia as novas colunas 'Horário', 'Local' e 'Semestre' do DataFrame
-# para o esquema da tabela no banco de dados.
 def salvar_turmas_no_banco(df_dados: pd.DataFrame):
     if df_dados.empty:
         print("[Supabase] DataFrame vazio, nenhum dado para enviar.")
         return
 
     semestre_atual = df_dados["Semestre"].iloc[0]
-    print(f"\n[Supabase] Enviando turmas do semestre {semestre_atual}...")
+    print(f"\n[Supabase] Limpando e enviando turmas do semestre {semestre_atual}...")
 
     try:
         supabase = conectar_supabase()
 
+        # -------------------------------------------
+        # 1. Limpa todas as turmas
+        # -------------------------------------------
+        # Ao deletar todas as linhas, o Trigger do Postgres detecta que
+        # a tabela ficou vazia e reseta o ID para 1 automaticamente!
+        supabase.table("turmas_ci").delete().neq("codigo_disciplina", "---").execute()
+
+        # -------------------------------------------
+        # 2. Prepara e insere os novos dados
+        # -------------------------------------------
         lista_turmas = []
         for _, linha in df_dados.iterrows():
             turma_dict = {
@@ -49,12 +51,10 @@ def salvar_turmas_no_banco(df_dados: pd.DataFrame):
             }
             lista_turmas.append(turma_dict)
 
-        resultado = supabase.table("turmas_ci").upsert(
-            lista_turmas,
-            on_conflict="codigo_disciplina, turma, semestre"
-        ).execute()
+        # Inserção limpa (começando do 1)
+        resultado = supabase.table("turmas_ci").insert(lista_turmas).execute()
 
-        print(f"[SUCESSO] {len(resultado.data)} turmas enviadas/atualizadas no Supabase!")
+        print(f"[SUCESSO] {len(resultado.data)} turmas cadastradas a partir do ID 1!")
 
     except Exception as e:
         print(f"[ERRO] Falha ao salvar no Supabase: {e}")
