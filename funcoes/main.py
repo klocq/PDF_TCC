@@ -1,10 +1,14 @@
-# pipeline.py (ou main.py)
 import os
+import sys
+
+# Garante que o diretório 'funcoes' seja reconhecido pelo Python
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
 from extrator import extrair_texto_pdf
 from processador import processar_texto_bruto
 from tratamento_dados import aplicar_tratamento_completo
 from transformador_pandas import exportar_relatorios_finais
-from banco import salvar_turmas_no_banco, supabase  # <-- 1. Importa a conexão do Supabase aqui
+from banco import salvar_turmas_no_banco, supabase
 
 
 def processar_pdf_individual(caminho_pdf_entrada: str, caminho_excel_saida: str):
@@ -20,11 +24,11 @@ def processar_pdf_individual(caminho_pdf_entrada: str, caminho_excel_saida: str)
     if not dados_brutos:
         return False, "Nenhuma turma encontrada no arquivo PDF fornecido."
 
-    # 2. Tratamento Inteligente com Pandas (Passamos o client do Supabase como 3º argumento)
+    # 2. Tratamento Inteligente com Pandas (enriquecimento via Supabase)
     df_tratado = aplicar_tratamento_completo(
         dados_brutos, 
         caminho_pdf=caminho_pdf_entrada, 
-        supabase_client=supabase  # <-- 2. Conecta a busca da matriz ao Supabase
+        supabase_client=supabase
     )
 
     # 3. Exportação para Excel (.xlsx)
