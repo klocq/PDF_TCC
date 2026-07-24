@@ -4,12 +4,12 @@ from extrator import extrair_texto_pdf
 from processador import processar_texto_bruto
 from tratamento_dados import aplicar_tratamento_completo
 from transformador_pandas import exportar_relatorios_finais
-from banco import salvar_turmas_no_banco
+from banco import salvar_turmas_no_banco, supabase  # <-- 1. Importa a conexão do Supabase aqui
 
 
 def processar_pdf_individual(caminho_pdf_entrada: str, caminho_excel_saida: str):
     """
-    Executa o pipeline completo para um unico arquivo PDF enviado.
+    Executa o pipeline completo para um único arquivo PDF enviado.
     """
     print(f"\n>>> Processando arquivo: {caminho_pdf_entrada}")
 
@@ -20,8 +20,12 @@ def processar_pdf_individual(caminho_pdf_entrada: str, caminho_excel_saida: str)
     if not dados_brutos:
         return False, "Nenhuma turma encontrada no arquivo PDF fornecido."
 
-    # 2. Tratamento Inteligente com Pandas (Separação de colunas e Semestre)
-    df_tratado = aplicar_tratamento_completo(dados_brutos, caminho_pdf=caminho_pdf_entrada)
+    # 2. Tratamento Inteligente com Pandas (Passamos o client do Supabase como 3º argumento)
+    df_tratado = aplicar_tratamento_completo(
+        dados_brutos, 
+        caminho_pdf=caminho_pdf_entrada, 
+        supabase_client=supabase  # <-- 2. Conecta a busca da matriz ao Supabase
+    )
 
     # 3. Exportação para Excel (.xlsx)
     exportar_relatorios_finais(df_tratado, caminho_excel_saida)

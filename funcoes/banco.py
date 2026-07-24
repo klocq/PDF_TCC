@@ -8,9 +8,13 @@ load_dotenv()
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
 
+# Conexão global exportável para outros módulos usarem (ex: main.py, tratamento_dados.py)
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+
 
 def conectar_supabase() -> Client:
-    return create_client(SUPABASE_URL, SUPABASE_KEY)
+    """Retorna a instância global do Supabase."""
+    return supabase
 
 
 def salvar_turmas_no_banco(df_dados: pd.DataFrame):
@@ -22,13 +26,9 @@ def salvar_turmas_no_banco(df_dados: pd.DataFrame):
     print(f"\n[Supabase] Limpando e enviando turmas do semestre {semestre_atual}...")
 
     try:
-        supabase = conectar_supabase()
-
         # -------------------------------------------
         # 1. Limpa todas as turmas
         # -------------------------------------------
-        # Ao deletar todas as linhas, o Trigger do Postgres detecta que
-        # a tabela ficou vazia e reseta o ID para 1 automaticamente!
         supabase.table("turmas_ci").delete().neq("codigo_disciplina", "---").execute()
 
         # -------------------------------------------
@@ -42,6 +42,7 @@ def salvar_turmas_no_banco(df_dados: pd.DataFrame):
                 "nome_disciplina": str(linha["Nome da Disciplina"]).strip(),
                 "fase": str(linha["Fase"]).strip(),
                 "tipo": str(linha["Tipo"]).strip(),
+                "tipo_disciplina": str(linha.get("Tipo de Disciplina", "Específico")).strip(), # <-- Nova coluna (Comum vs Específico)
                 "horas_aula": int(linha["Horas Aula"]),
                 "ofertas": int(linha["Ofertas"]),
                 "horario": str(linha["Horário"]).strip(),
@@ -51,7 +52,7 @@ def salvar_turmas_no_banco(df_dados: pd.DataFrame):
             }
             lista_turmas.append(turma_dict)
 
-        # Inserção limpa (começando do 1)
+        # Inserção limpa no Supabase
         resultado = supabase.table("turmas_ci").insert(lista_turmas).execute()
 
         print(f"[SUCESSO] {len(resultado.data)} turmas cadastradas a partir do ID 1!")

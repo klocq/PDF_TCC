@@ -57,6 +57,45 @@ def mapear_fase_e_tipo(codigo: str):
 
 
 # -------------------------------------------
+# CONSULTA AO SUPABASE: Núcleo Comum vs Específico (NOVO)
+# -------------------------------------------
+def enriquecer_com_tipo_nucleo(df: pd.DataFrame, supabase_client) -> pd.DataFrame:
+    """
+    Consulta a tabela 'disciplinas_matriz' no Supabase para classificar
+    cada turma como 'Comum' ou 'Específico'.
+    """
+    if df.empty or supabase_client is None:
+        df["Tipo de Disciplina"] = "Específico"
+        return df
+
+    try:
+        # Busca no Supabase a tabela de referência que criamos
+        res = supabase_client.table("disciplinas_matriz").select("codigo, tipo_nucleo").execute()
+        df_matriz = pd.DataFrame(res.data)
+
+        if not df_matriz.empty:
+            # Faz o cruzamento (merge) pelo código da disciplina
+            df = pd.merge(
+                df,
+                df_matriz,
+                left_on="Código da Disciplina",
+                right_on="codigo",
+                how="left"
+            )
+            # Preenche o resultado e remove colunas auxiliares do merge
+            df["Tipo de Disciplina"] = df["tipo_nucleo"].fillna("Específico")
+            df.drop(columns=["codigo", "tipo_nucleo"], errors="ignore", inplace=True)
+        else:
+            df["Tipo de Disciplina"] = "Específico"
+
+    except Exception as e:
+        print(f"[Tratamento] ⚠️ Aviso ao buscar matriz no Supabase ({e}). Usando padrão 'Específico'.")
+        df["Tipo de Disciplina"] = "Específico"
+
+    return df
+
+
+# -------------------------------------------
 # Divisão da Coluna Horario/Local
 # -------------------------------------------
 def separar_horario_e_local(texto_horario_local: str):
@@ -86,10 +125,6 @@ def separar_horario_e_local(texto_horario_local: str):
 # LÓGICA ANTI-CONFLITO DE HORÁRIOS UFSC
 # -------------------------------------------
 def extrair_slots_horario(horario_str: str) -> set:
-    """
-    Transforma uma string como '2.0820-2 | 4.1010-2' em um conjunto de slots únicos.
-    Exemplo: '2.0820-2' gera o conjunto {('2', '0820'), ('2', '0910')} para comparação exata.
-    """
     slots = set()
     if not horario_str or horario_str in ["N/A", "A definir"]:
         return slots
@@ -101,26 +136,19 @@ def extrair_slots_horario(horario_str: str) -> set:
         if match:
             dia, hora_inicio, num_aulas = match.groups()
             num_aulas = int(num_aulas)
-            
-            # Mapeamento aproximado de blocos de aulas por horário inicial da UFSC
             hora_int = int(hora_inicio)
             for i in range(num_aulas):
-                # Cada slot é identificado pelo (Dia, Bloco_Horário)
-                slots.add((dia, hora_int + (i * 50)))  # Incremento simplificado por bloco
+                slots.add((dia, hora_int + (i * 50)))
     return slots
 
 
 def tem_choque_de_horario(horario_optativa: str, lista_horarios_obrigatorias: list) -> bool:
-    """
-    Retorna True se o horário da optativa colidir com qualquer disciplina obrigatória da fase.
-    """
     slots_optativa = extrair_slots_horario(horario_optativa)
     if not slots_optativa:
-        return False  # Sem horário definido, não há como confirmar choque
+        return False
 
     for hor_obrig in lista_horarios_obrigatorias:
         slots_obrig = extrair_slots_horario(hor_obrig)
-        # Se a interseção de slots de horário não for vazia, há choque!
         if slots_optativa.intersection(slots_obrig):
             return True
 
@@ -128,12 +156,8 @@ def tem_choque_de_horario(horario_optativa: str, lista_horarios_obrigatorias: li
 
 
 def alocar_optativas_nas_fases(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Garante o preenchimento de optativas na 5ª e 6ª fases sem gerar choques com obrigatórias.
-    """
     print("[Tratamento] Executando algoritmo de alocação de Optativas sem choque...")
 
-    # Mapeia horários das disciplinas obrigatórias das fases 5 e 6
     obrigatorias_5a = df[(df["Fase"] == "5ª Fase") & (df["Tipo"] == "Obrigatória")]["Horário"].tolist()
     obrigatorias_6a = df[(df["Fase"] == "6ª Fase") & (df["Tipo"] == "Obrigatória")]["Horário"].tolist()
 
@@ -141,49 +165,36 @@ def alocar_optativas_nas_fases(df: pd.DataFrame) -> pd.DataFrame:
         if linha["Tipo"] == "Optativa":
             horario_optativa = linha["Horário"]
 
-            # Tenta alocar na 5ª Fase primeiro
             if not tem_choque_de_horario(horario_optativa, obrigatorias_5a):
                 df.at[idx, "Fase"] = "5ª Fase (Optativa)"
-                # Adiciona o horário para não alocar outra optativa no mesmo slot na 5ª fase
                 obrigatorias_5a.append(horario_optativa)
-            
-            # Se deu choque na 5ª, tenta alocar na 6ª Fase
             elif not tem_choque_de_horario(horario_optativa, obrigatorias_6a):
                 df.at[idx, "Fase"] = "6ª Fase (Optativa)"
                 obrigatorias_6a.append(horario_optativa)
 
     return df
 
+
 # -------------------------------------------
 # Filtro de Turmas Canceladas / Intercâmbio / Sem Horário
 # -------------------------------------------
 def filtrar_turmas_invalidas(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Remove turmas que foram canceladas, programas de intercâmbio ou
-    que não possuem horários definidos/válidos.
-    """
     total_inicial = len(df)
 
-    # 1. Filtra turmas com '[Cancelada]' no Nome ou no Professor
     mascara_cancelada = (
         df["Nome da Disciplina"].astype(str).str.contains(r"\[Cancelada\]|cancelada", case=False, na=False) |
         df["Professor"].astype(str).str.contains(r"Disciplina Cancelada|cancelada", case=False, na=False)
     )
 
-    # 2. Filtra turmas de Intercâmbio (que não têm grade presencial)
     mascara_intercambio = df["Nome da Disciplina"].astype(str).str.contains(r"Intercâmbio", case=False, na=False)
 
-    # 3. Filtra horários nulos ou 'A definir' / 'N/A'
     coluna_horario = df["Horário/Local"] if "Horário/Local" in df.columns else df.get("Horario_Local", df.get("Horário", ""))
     mascara_sem_horario = (
         coluna_horario.isna() |
         coluna_horario.astype(str).str.strip().isin(["", "N/A", "A definir", "nan", "None"])
     )
 
-    # Combina todas as condições de exclusão
     mascara_remover = mascara_cancelada | mascara_intercambio | mascara_sem_horario
-    
-    # Mantém apenas as turmas válidas
     df_limpo = df[~mascara_remover].copy()
 
     removidas = total_inicial - len(df_limpo)
@@ -191,43 +202,51 @@ def filtrar_turmas_invalidas(df: pd.DataFrame) -> pd.DataFrame:
         print(f"[Tratamento] 🚫 {removidas} turmas inválidas/canceladas/intercâmbio foram descartadas.")
 
     return df_limpo
+
+
 # -------------------------------------------
-# Pipeline de Tratamento do DataFrame
+# Pipeline de Tratamento do DataFrame (AJUSTADO)
 # -------------------------------------------
-def aplicar_tratamento_completo(dados_brutos: list, caminho_pdf: str) -> pd.DataFrame:
+def aplicar_tratamento_completo(dados_brutos: list, caminho_pdf: str, supabase_client=None) -> pd.DataFrame:
     print("\n[Tratamento] Executando enriquecimento e divisão de colunas...")
     df = pd.DataFrame(dados_brutos)
 
     if df.empty:
         return df
 
-    # --- 1. FILTRAGEM DE TURMAS INVALIDEZ (NOVO) ---
+    # 1. Filtro de Turmas Inválidas
     df = filtrar_turmas_invalidas(df)
 
-    # Inserção da Coluna de Semestre
+    # 2. Inserção da Coluna de Semestre
     df["Semestre"] = extrair_semestre_do_nome_arquivo(caminho_pdf)
 
-    # Mapeamento de Fase e Tipo
+    # 3. Mapeamento de Fase e Tipo (Obrigatória/Optativa)
     fases_tipos = df["Código da Disciplina"].apply(mapear_fase_e_tipo)
     df["Fase"] = [item[0] for item in fases_tipos]
     df["Tipo"] = [item[1] for item in fases_tipos]
 
-    # Separação de Horário e Local
+    # 4. Separação de Horário e Local
     coluna_origem = df["Horário/Local"] if "Horário/Local" in df.columns else df.get("Horario_Local", "")
     horarios_locais = coluna_origem.apply(separar_horario_e_local)
 
     df["Horário"] = [hl[0] for hl in horarios_locais]
     df["Local"] = [hl[1] for hl in horarios_locais]
 
-    # --- ALOCAÇÃO AUTOMÁTICA DE OPTATIVAS ---
+    # 5. Alocação Automática de Optativas
     df = alocar_optativas_nas_fases(df)
 
-    # Reordenação limpa das colunas
+    # 6. ENRIQUECIMENTO COM SUPABASE (NOVO): Adiciona a coluna 'Tipo de Disciplina' (Comum vs Específico)
+    df = enriquecer_com_tipo_nucleo(df, supabase_client)
+
+    # 7. Reordenação limpa das colunas (Incluindo 'Tipo de Disciplina')
     colunas_finais = [
         "Semestre", "Código da Disciplina", "Turma", "Nome da Disciplina",
-        "Fase", "Tipo", "Horas Aula", "Ofertas", "Horário", "Local", "Professor"
+        "Fase", "Tipo", "Tipo de Disciplina", "Horas Aula", "Ofertas", "Horário", "Local", "Professor"
     ]
 
-    df = df[colunas_finais]
+    # Garante que só tentaremos ordenar colunas que realmente existem no DataFrame
+    colunas_presentes = [c for c in colunas_finais if c in df.columns]
+    df = df[colunas_presentes]
+
     print(f"[Tratamento] {len(df)} turmas válidas processadas com sucesso!")
     return df
