@@ -1,7 +1,7 @@
 import re
 import pandas as pd
 
-# 1. Dicionário oficial e corrigido do Novo Currículo (PPC 2025/2026)
+# Dicionário oficial do Novo Currículo (PPC 2025/2026)
 DISCIPLINAS_NOVO_CURRICULO = {
     # --- 1ª FASE ---
     "CAD5103": 1,  # Administração I
@@ -56,35 +56,38 @@ DISCIPLINAS_NOVO_CURRICULO = {
 }
 
 
+# ____________________________________________________
+# 1 - O que faz?
+# ----------------------------------------------------
+# Associa o código de cada disciplina extraída à sua 
+# respectiva fase do novo currículo (PPC 2025/2026).
+# ____________________________________________________
 def aplicar_fases_novas(dados_estruturados):
-    """
-    Recebe a lista de dicionários das turmas extraídas do PDF
-    e adiciona a fase correta do currículo de 2026.1
-    """
     df = pd.DataFrame(dados_estruturados)
 
     if df.empty:
         return []
 
-    # Garante que a coluna de código esteja limpa e formatada como texto
     df['Código da Disciplina'] = df['Código da Disciplina'].astype(str).str.strip()
-
-    # Aplica o mapeamento da fase do Novo Currículo.
     df['Fase'] = df['Código da Disciplina'].map(DISCIPLINAS_NOVO_CURRICULO).fillna("Optativa")
 
-    # Converte de volta para lista de dicionários para o resto do código
     return df.to_dict(orient="records")
 
 
+# ____________________________________________________
+# 1 - O que faz?
+# ----------------------------------------------------
+# Processa o texto bruto extraído do PDF via Expressões 
+# Regulares, identificando turmas, horários, locais e 
+# professores, tratando linhas órfãs e cabeçalhos.
+# ____________________________________________________
 def processar_texto_bruto(texto_bruto):
     dados_estruturados = []
     linhas = texto_bruto.split("\n")
 
-    # Expressões regulares estáveis de ancoragem
     padrao_inicio = re.compile(r'^([A-Z]{3}\d{4})\s+(\d{5}[A-Z]?)')
     padrao_horario_ufsc = re.compile(r'(\d\.\d{4}-\d\s*/\s*[A-Z0-9-]+(?:\s+[A-Z]\b)?)')
 
-    # Lista negra de palavras para não confundir cabeçalho com nome do professor
     palavras_proibidas_professor = {
         "VAGAS", "OFERTADAS", "OCUPADAS", "ALUNOS", "ESPECIAIS", "SALDO",
         "PEDIDOS", "SEM", "VAGA", "PROFESSORES", "CURSO", "DISCIPLINA", "NOME"
@@ -92,13 +95,13 @@ def processar_texto_bruto(texto_bruto):
 
     linha_acumulada = ""
 
-    for i, linha in enumerate(linhas):
+    for linha in linhas:
         linha = linha.strip()
 
         if not linha:
             continue
 
-        # 1. FILTRO DE CABEÇALHOS DO DOCUMENTO
+        # 1. Filtro de cabeçalhos do documento
         linha_maiuscula = linha.upper()
         if ("SEMESTRE:" in linha_maiuscula or
             "CADASTRO DE TURMAS" in linha_maiuscula or
@@ -106,7 +109,7 @@ def processar_texto_bruto(texto_bruto):
             "PÁGINA:" in linha_maiuscula):
             continue
 
-        # 2. TRATAMENTO DE LINHAS ÓRFÃS
+        # 2. Tratamento de linhas órfãs
         if not padrao_inicio.search(linha) and not linha_acumulada:
             if dados_estruturados:
                 ultimo_registro = dados_estruturados[-1]
@@ -136,7 +139,7 @@ def processar_texto_bruto(texto_bruto):
                                     ultimo_registro["Professor"] += " e " + texto_limpo
             continue
 
-        # 3. PROCESSAMENTO DA LINHA PRINCIPAL DA DISCIPLINA
+        # 3. Processamento da linha principal da disciplina
         if linha_acumulada:
             linha_completa = linha_acumulada + " " + linha
         else:
@@ -209,8 +212,7 @@ def processar_texto_bruto(texto_bruto):
                 }
                 dados_estruturados.append(registro)
 
-    # Aplicação do mapeamento de currículo
+    # Aplica o mapeamento do novo currículo
     dados_estruturados = aplicar_fases_novas(dados_estruturados)
 
-    print(f"[Processador] {len(dados_estruturados)} turmas estruturadas com sucesso.")
     return dados_estruturados
