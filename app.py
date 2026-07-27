@@ -34,32 +34,37 @@ aba_upload, aba_consulta = st.tabs(["📤 Envio de Arquivos (ETL)", "🔍 Consul
 # ==========================================
 with aba_upload:
     st.header("Upload do Cadastro de Turmas (PDF)")
-    st.write("Envie o arquivo PDF de oferta de turmas para processar e atualizar o banco de dados e relatórios.")
+    st.write("Envie o arquivo PDF de oferta de turmas para processar, sanitizar e atualizar o banco de dados e relatórios.")
     
     pdf_enviado = st.file_uploader("Selecione o arquivo PDF das turmas", type=["pdf"])
     
     if pdf_enviado is not None:
         if st.button("🚀 Processar e Salvar no Supabase", use_container_width=True):
-            with st.spinner("Processando pipeline de dados..."):
+            with st.spinner("Processando pipeline de dados (ETL)..."):
+                # Garante diretórios absolutos e limpos
                 dir_entradas = os.path.abspath(os.path.join(os.path.dirname(__file__), "entradas"))
                 dir_resultados = os.path.abspath(os.path.join(os.path.dirname(__file__), "resultados"))
                 
                 os.makedirs(dir_entradas, exist_ok=True)
                 os.makedirs(dir_resultados, exist_ok=True)
 
-                caminho_temp = os.path.join(dir_entradas, pdf_enviado.name)
-                caminho_excel = os.path.join(dir_resultados, "relatorio_final.xlsx")
+                # Salva o arquivo temporário enviado pelo usuário
+                caminho_pdf_entrada = os.path.join(dir_entradas, pdf_enviado.name)
+                caminho_excel_saida = os.path.join(dir_resultados, "relatorio_final.xlsx")
 
-                with open(caminho_temp, "wb") as f:
+                with open(caminho_pdf_entrada, "wb") as f:
                     f.write(pdf_enviado.getbuffer())
                 
-                sucesso, msg = processar_pdf_individual(caminho_temp, caminho_excel)
+                # Executa o pipeline apenas com o arquivo fornecido pelo usuário
+                sucesso, msg = processar_pdf_individual(caminho_pdf_entrada, caminho_excel_saida)
                 
                 if sucesso:
                     st.success(msg)
                     st.balloons()
                 else:
                     st.error(msg)
+    else:
+        st.info("📌 Aguardando envio do arquivo PDF para iniciar o processamento.")
 
 # ==========================================
 # ABA 2: CONSULTA E GRADE HORÁRIA VISUAL
