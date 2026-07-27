@@ -1,18 +1,21 @@
 import sys
 import os
-import io
 
-# Adiciona a pasta 'funcoes' ao caminho do Python
+# 1. Registra a pasta 'funcoes' no caminho do Python PRIMEIRO
 PASTA_FUNCOES = os.path.abspath(os.path.join(os.path.dirname(__file__), "funcoes"))
 if PASTA_FUNCOES not in sys.path:
     sys.path.append(PASTA_FUNCOES)
 
+# 2. Agora pode fazer as importações normalmente
 import streamlit as st
 import pandas as pd
+import io
 
 from banco import supabase
 from main import processar_pdf_individual
 from transformador_pandas import gerar_grade_horaria_fase, exportar_relatorios_finais
+from auditoria_conflitos import detectar_todos_conflitos  # <-- Importação aqui depois do sys.path
+from data_quality import executar_auditoria_data_quality
 
 # Configuração da página no Streamlit
 st.set_page_config(
@@ -190,3 +193,72 @@ with aba_consulta:
             use_container_width=True,
             hide_index=True
         )
+        # ------------------------------------------
+        # PAINEL DE AUDITORIA E DETECÇÃO DE CONFLITOS
+        # ------------------------------------------
+        st.markdown("---")
+        st.subheader("🚨 Auditoria Pedagógica e Detecção de Conflitos")
+
+        conf_prof, conf_sala, conf_fase = detectar_todos_conflitos(df_filtrado)
+        total_conflitos = len(conf_prof) + len(conf_sala) + len(conf_fase)
+
+        if total_conflitos == 0:
+            st.success("✅ Nenhum conflito de horário, professor ou sala detectado na seleção atual!")
+        else:
+            st.warning(f"⚠️ Foram encontrados **{total_conflitos} conflitos/alertas** na seleção atual.")
+            
+            exp1, exp2, exp3 = st.columns(3)
+            
+            with exp1:
+                st.metric("Choques de Professor", len(conf_prof))
+            with exp2:
+                st.metric("Choques de Sala/Local", len(conf_sala))
+            with exp3:
+                st.metric("Sobreposições de Fase", len(conf_fase))
+
+            with st.expander("🔍 Ver Detalhes dos Conflitos Detectados", expanded=True):
+                tab_p, tab_s, tab_f = st.tabs(["👨‍🏫 Conflitos de Professor", "🏫 Conflitos de Sala", "📚 Sobreposição de Fase"])
+                
+                with tab_p:
+                    if conf_prof:
+                        for c in conf_prof:
+                            st.error(f"**{c['dia']} às {c['hora']}**: {c['detalhe']}")
+                    else:
+                        st.info("Nenhum choque de professor encontrado.")
+
+                with tab_s:
+                    if conf_sala:
+                        for c in conf_sala:
+                            st.error(f"**{c['dia']} às {c['hora']}**: {c['detalhe']}")
+                    else:
+                        st.info("Nenhum choque de sala/local encontrado.")
+
+                with tab_f:
+                    if conf_fase:
+                        for c in conf_fase:
+                            st.warning(f"**{c['fase']} - {c['dia']} às {c['hora']}**: {c['detalhe']}")
+                    else:
+                        st.info("Nenhuma sobreposição de horário na mesma fase encontrada.")
+
+
+        # ------------------------------------------
+        # RELATÓRIO DE DATA QUALITY
+        # ------------------------------------------
+        st.subheader("🛡️ Relatório de Data Quality & Sanitização")
+        
+        relatorio_dq = executar_auditoria_data_quality(df_turmas)
+        
+        col_m1, col_m2, col_m3, col_m4 = st.columns(4)
+        col_m1.metric("Total de Turmas", relatorio_dq["total_registros"])
+        col_m2.metric("Horários Válidos", f"{relatorio_dq['metricas']['pct_horarios_validos']}%")
+        col_m3.metric("Professores Alocados", f"{relatorio_dq['metricas']['pct_professores_definidos']}%")
+        col_m4.metric("Salas Reservadas", f"{relatorio_dq['metricas']['pct_salas_definidas']}%")
+
+        if relatorio_dq["alertas"]:
+            with st.expander("⚠️ Ver Avisos de Integridade de Dados", expanded=False):
+                for alerta in relatorio_dq["alertas"]:
+                    st.write(alerta)
+        else:
+            st.success("✅ " + relatorio_dq["mensagem"])
+
+        st.markdown("---")
