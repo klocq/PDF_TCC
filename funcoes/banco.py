@@ -1,14 +1,25 @@
 import os
 import pandas as pd
+import streamlit as st
 from dotenv import load_dotenv
 from supabase import create_client, Client
 
+# Tenta carregar as variáveis locais (do arquivo .env, se existir no PC)
 load_dotenv()
 
-SUPABASE_URL = os.environ.get("SUPABASE_URL")
-SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
+# -------------------------------------------
+# FORMA SEGURA DE LER AS CHAVES (NUVEM VS LOCAL)
+# -------------------------------------------
+try:
+    # 1. Tenta pegar da nuvem do Streamlit primeiro (Secrets)
+    SUPABASE_URL = st.secrets["SUPABASE_URL"]
+    SUPABASE_KEY = st.secrets["SUPABASE_KEY"]
+except (KeyError, FileNotFoundError):
+    # 2. Se falhar (ex: rodando localmente sem Streamlit), tenta pegar do .env via OS
+    SUPABASE_URL = os.environ.get("SUPABASE_URL")
+    SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
 
-# Conexão global exportável para outros módulos usarem (ex: main.py, app.py)
+# Conexão global exportável para outros módulos usarem
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 
@@ -26,15 +37,10 @@ def salvar_turmas_no_banco(df_dados: pd.DataFrame):
     print(f"\n[Supabase] Limpando e enviando turmas do semestre {semestre_atual}...")
 
     try:
-        # -------------------------------------------
-        # 1. Limpa todas as turmas antigas
-        # -------------------------------------------
+        # 1. Limpa todas as turmas
         supabase.table("turmas_ci").delete().neq("codigo_disciplina", "---").execute()
 
-        # -------------------------------------------
-        # 2. Prepara os dados para o Banco (REMOVENDO DUPLICATAS VISUAIS)
-        # -------------------------------------------
-        # Isso garante que a INE5111 (que duplicamos para o Excel) não quebre o banco!
+        # 2. Prepara e insere os novos dados (Removendo duplicatas visuais)
         df_banco = df_dados.drop_duplicates(subset=["Código da Disciplina", "Turma", "Semestre"], keep="first")
 
         lista_turmas = []
@@ -57,7 +63,6 @@ def salvar_turmas_no_banco(df_dados: pd.DataFrame):
 
         # Inserção limpa no Supabase
         resultado = supabase.table("turmas_ci").insert(lista_turmas).execute()
-
         print(f"[SUCESSO] {len(resultado.data)} turmas salvas no Supabase com sucesso!")
 
     except Exception as e:
