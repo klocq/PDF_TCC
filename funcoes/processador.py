@@ -1,79 +1,6 @@
 import re
 import pandas as pd
 
-# Dicionário oficial do Novo Currículo (PPC 2025/2026)
-DISCIPLINAS_NOVO_CURRICULO = {
-    # --- 1ª FASE ---
-    "CAD5103": 1,  # Administração I
-    "CIN7141": 1,  # Lógica Instrumental I
-    "CIN7143": 1,  # Empreendedorismo I
-    "CIN7144": 1,  # Tutoria Acadêmica I
-    "CIN7145": 1,  # Gestão da Informação
-    "CIN7925": 1,  # Introdução a Algoritmos
-    "CIN7943": 1,  # Experiência do Usuário - UX
-    "LLV7802": 1,  # Leitura e Produção de Texto
-    "MTM3110": 1,  # Cálculo I
-
-    # --- 2ª FASE ---
-    "CIN7201": 2,  # Sistemas de Organização do Conhecimento
-    "CIN7204": 2,  # Tutoria Acadêmica II
-    "CIN7309": 2,  # Gestão de Processos Organizacionais
-    "CIN7412": 2,  # Marketing da Informação
-    "CIN7907": 2,  # Lógica Aplicada I
-    "INE5111": 2,  # Estatística Aplicada I
-
-    # --- 3ª FASE ---
-    "CIN7000": 3,  # Laboratório de Empreendimentos Sociais
-    "CIN7301": 3,  # Introdução à Representação Temática
-    "CIN7302": 3,  # Introdução à Representação Descritiva
-    "CIN7304": 3,  # Introdução à Bancos de Dados
-    "CIN7501": 3,  # Arquitetura da Informação e Usabilidade
-    "CIN7936": 3,  # Proteção de Dados Pessoais
-    "MTM3687": 3,  # Aprendizado de Máquina Aplicado
-
-    # --- 4ª FASE ---
-    "CIN1111": 4,  # Fontes de Informação Tecnológica
-    "CIN7401": 4,  # Estudos Métricos da Informação
-    "CIN7403": 4,  # Acessibilidade e Inclusão Digital
-    "CIN7404": 4,  # Planejamento Estratégico
-    "CIN7411": 4,  # Análise Exploratória de Dados
-    "CIN7503": 4,  # Bancos de Dados
-    "CIN7903": 4,  # Inteligência Competitiva
-    "CIN7938": 4,  # Segurança da Informação
-    "HST7921": 4,  # História do Brasil Contemporâneo
-
-    # --- 5ª FASE ---
-    "CIN7502": 5,  # Mineração de Texto
-    "CIN7504": 5,  # Gerenciamento de Projetos
-    "CIN7505": 5,  # Estágio em Ciência da Informação
-    "CIN7933": 5,  # Gestão da Inovação
-
-    # --- 6ª FASE ---
-    "CIN7601": 6,  # Linked Data
-    "CIN7602": 6,  # Mídias Sociais
-    "CIN7603": 6,  # Empreendedorismo II
-    "CIN7604": 6,  # TCC
-}
-
-
-# ____________________________________________________
-# 1 - O que faz?
-# ----------------------------------------------------
-# Associa o código de cada disciplina extraída à sua 
-# respectiva fase do novo currículo (PPC 2025/2026).
-# ____________________________________________________
-def aplicar_fases_novas(dados_estruturados):
-    df = pd.DataFrame(dados_estruturados)
-
-    if df.empty:
-        return []
-
-    df['Código da Disciplina'] = df['Código da Disciplina'].astype(str).str.strip()
-    df['Fase'] = df['Código da Disciplina'].map(DISCIPLINAS_NOVO_CURRICULO).fillna("Optativa")
-
-    return df.to_dict(orient="records")
-
-
 # ____________________________________________________
 # 1 - O que faz?
 # ----------------------------------------------------
@@ -212,7 +139,6 @@ def processar_texto_bruto(texto_bruto):
                 }
                 dados_estruturados.append(registro)
 
-    # Aplica o mapeamento do novo currículo
-    dados_estruturados = aplicar_fases_novas(dados_estruturados)
-
+    # Note que NÃO chamamos mais a função de "aplicar_fases_novas" aqui!
+    # Devolvemos apenas os dados limpos extraídos.
     return dados_estruturados
