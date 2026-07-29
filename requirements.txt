@@ -1,0 +1,6 @@
+streamlit
+pandas
+pypdf
+supabase
+python-dotenv
+openpyxl
