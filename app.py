@@ -24,6 +24,12 @@ st.set_page_config(
     layout="wide"
 )
 
+# --- NOVO: CRIA O CADEADO INICIAL FECHADO ---
+if "pdf_processado" not in st.session_state:
+    st.session_state["pdf_processado"] = False
+
+st.title("📚 Sistema de Gestão Curricular e Turmas - CI / UFSC")
+
 st.title("📚 Sistema de Gestão Curricular e Turmas - CI / UFSC")
 
 # Criação das Abas Principais
@@ -59,6 +65,7 @@ with aba_upload:
                 sucesso, msg = processar_pdf_individual(caminho_pdf_entrada, caminho_excel_saida)
                 
                 if sucesso:
+                    st.session_state["pdf_processado"] = True  # <-- NOVO: DESTRANCA A CONSULTA!
                     st.success(msg)
                     st.balloons()
                 else:
@@ -72,23 +79,27 @@ with aba_upload:
 with aba_consulta:
     st.header("Consulta de Turmas e Grade Semanal")
 
-    @st.cache_data(ttl=10)
-    def carregar_dados_banco():
-        try:
-            res = supabase.table("turmas_ci").select("*").execute()
-            return pd.DataFrame(res.data)
-        except Exception as e:
-            st.error(f"Erro ao carregar dados do Supabase: {e}")
-            return pd.DataFrame()
-
-    df_turmas = carregar_dados_banco()
-
-    # 🛑 VALIDAÇÃO DE SEGURANÇA: Se o banco estiver vazio, barra a consulta e mostra o aviso limpo!
-    if df_turmas.empty:
-        st.info("📦 Nenhum dado de turmas encontrado. Por favor, vá na aba **'Envio de Arquivos (ETL)'** e faça o upload do arquivo PDF do semestre para gerar os dados.")
+    # 🛑 VALIDAÇÃO DE SEGURANÇA: Verifica o cadeado em vez de olhar o banco!
+    if not st.session_state["pdf_processado"]:
+        st.info("📦 A consulta está bloqueada. Por favor, vá na aba **'Envio de Arquivos (ETL)'** e faça o upload do arquivo PDF do semestre para liberar a visualização.")
     else:
-        # Padronização e renomeação de colunas vindas do banco
-        colunas_map = {
+        # Se o cadeado estiver aberto (PDF foi enviado), carrega os dados normalmente
+        @st.cache_data(ttl=10)
+        def carregar_dados_banco():
+            try:
+                res = supabase.table("turmas_ci").select("*").execute()
+                return pd.DataFrame(res.data)
+            except Exception as e:
+                st.error(f"Erro ao carregar dados do Supabase: {e}")
+                return pd.DataFrame()
+
+        df_turmas = carregar_dados_banco()
+
+        if df_turmas.empty:
+            st.warning("⚠️ O banco de dados retornou vazio, mesmo após o processamento.")
+        else:
+            # Padronização e renomeação de colunas vindas do banco
+            colunas_map = {
             "codigo_disciplina": "Código da Disciplina",
             "turma": "Turma",
             "nome_disciplina": "Nome da Disciplina",
