@@ -83,8 +83,9 @@ with aba_consulta:
 
     df_turmas = carregar_dados_banco()
 
+    # 🛑 VALIDAÇÃO DE SEGURANÇA: Se o banco estiver vazio, barra a consulta e mostra o aviso limpo!
     if df_turmas.empty:
-        st.info("Nenhuma turma encontrada no banco de dados. Envie um arquivo PDF na aba anterior para carregar os dados.")
+        st.info("📦 Nenhum dado de turmas encontrado. Por favor, vá na aba **'Envio de Arquivos (ETL)'** e faça o upload do arquivo PDF do semestre para gerar os dados.")
     else:
         # Padronização e renomeação de colunas vindas do banco
         colunas_map = {
@@ -198,6 +199,7 @@ with aba_consulta:
             use_container_width=True,
             hide_index=True
         )
+
         # ------------------------------------------
         # PAINEL DE AUDITORIA E DETECÇÃO DE CONFLITOS
         # ------------------------------------------
@@ -244,7 +246,6 @@ with aba_consulta:
                             st.warning(f"**{c['fase']} - {c['dia']} às {c['hora']}**: {c['detalhe']}")
                     else:
                         st.info("Nenhuma sobreposição de horário na mesma fase encontrada.")
-
 
         # ------------------------------------------
         # RELATÓRIO DE DATA QUALITY
