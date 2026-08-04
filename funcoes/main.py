@@ -11,11 +11,12 @@ from transformador_pandas import exportar_relatorios_finais
 from banco import salvar_turmas_no_banco, supabase
 
 
-def processar_pdf_individual(caminho_pdf_entrada: str, caminho_excel_saida: str):
+def processar_pdf_individual(caminho_pdf_entrada: str, caminho_excel_saida: str, curriculo: str = "20161"):
     """
-    Executa o pipeline completo para um único arquivo PDF enviado.
+    Executa o pipeline completo para um único arquivo PDF enviado,
+    considerando o currículo selecionado ('20161' ou '20261').
     """
-    print(f"\n>>> Processando arquivo: {caminho_pdf_entrada}")
+    print(f"\n>>> Processando arquivo: {caminho_pdf_entrada} | Currículo: {curriculo}")
 
     # 1. Extração e Limpeza Textual
     texto_bruto = extrair_texto_pdf(caminho_pdf_entrada)
@@ -24,20 +25,18 @@ def processar_pdf_individual(caminho_pdf_entrada: str, caminho_excel_saida: str)
     if not dados_brutos:
         return False, "Nenhuma turma encontrada no arquivo PDF fornecido."
 
-    # 2. Tratamento Inteligente com Pandas (enriquecimento via Supabase)
+    # 2. Tratamento Inteligente com Pandas (enriquecimento via Supabase e currículo escolhido)
     df_tratado = aplicar_tratamento_completo(
         dados_brutos, 
         caminho_pdf=caminho_pdf_entrada, 
-        supabase_client=supabase
+        supabase_client=supabase,
+        curriculo=curriculo
     )
 
     # 3. Exportação para Excel (.xlsx)
     exportar_relatorios_finais(df_tratado, caminho_excel_saida)
 
-    # 4. Ingestão na Nuvem (Supabase)
+    # 4. Salvar turmas tratadas no Banco
     salvar_turmas_no_banco(df_tratado)
 
-    semestre_detectado = df_tratado["Semestre"].iloc[0]
-    total_turmas = len(df_tratado)
-
-    return True, f"Sucesso! {total_turmas} turmas do semestre {semestre_detectado} foram processadas e enviadas ao banco."
+    return True, df_tratado
