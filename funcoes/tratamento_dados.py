@@ -1,57 +1,49 @@
 import os
 import re
 import pandas as pd
+from banco import obter_matriz_por_curriculo
 
-# ____________________________________________________
-# Tabela Completa de Mapeamento Curricular (Novo + Antigo PPC)
-# ____________________________________________________
-DISCIPLINAS_MAPEADAS = {
-    # 1ª FASE
-    "CAD5103": "1ª Fase", "CIN7141": "1ª Fase", "CIN7143": "1ª Fase",
-    "CIN7144": "1ª Fase", "CIN7145": "1ª Fase", "CIN7925": "1ª Fase",
-    "CIN7943": "1ª Fase", "LLV7802": "1ª Fase", "MTM3110": "1ª Fase",
-
-    # 2ª FASE
-    "CIN7201": "2ª Fase", "CIN7202": "2ª Fase", "CIN7203": "2ª Fase",
-    "CIN7204": "2ª Fase", "CIN7205": "2ª Fase", "CIN7206": "2ª Fase",
-    "CIN7309": "2ª Fase", "CIN7412": "2ª Fase", "CIN7907": "2ª Fase", 
-    "INE5111": "2ª Fase",
-
-    # 3ª FASE
-    "CIN7000": "3ª Fase", "CIN7301": "3ª Fase", "CIN7302": "3ª Fase",
-    "CIN7303": "3ª Fase", "CIN7304": "3ª Fase", "CIN7306": "3ª Fase",
-    "CIN7936": "3ª Fase", "HST7921": "3ª Fase", 
-    "MTM3687": "3ª Fase",
-
-    # 4ª FASE
-    "CIN1111": "4ª Fase", "CIN7401": "4ª Fase", "CIN7402": "4ª Fase",
-    "CIN7403": "4ª Fase", "CIN7404": "4ª Fase", "CIN7405": "4ª Fase",
-    "CIN7406": "4ª Fase", "CIN7411": "4ª Fase",
-    "CIN7903": "4ª Fase",
-
-    # 5ª FASE
-    "CIN7502": "5ª Fase", "CIN7504": "5ª Fase", "CIN7505": "5ª Fase",
-    "CIN7906": "5ª Fase", 
-    "CIN7933": "5ª Fase", "CIN7503": "5ª Fase",
-    "CIN7501": "5ª Fase",
-
-    # 6ª FASE
-    "CIN7601": "6ª Fase", "CIN7602": "6ª Fase", "CIN7603": "6ª Fase",
-    "CIN7604": "6ª Fase"
-}
 
 def extrair_semestre_do_nome_arquivo(caminho_pdf: str) -> str:
+    """Extrai o ano/semestre (ex: 2026.1) a partir do nome do arquivo PDF."""
+    if not caminho_pdf:
+        return "2026.1"
     nome_arquivo = os.path.basename(caminho_pdf)
     match = re.search(r"(\d{4})([12])", nome_arquivo)
     return f"{match.group(1)}.{match.group(2)}" if match else "2026.1"
 
-def mapear_fase_e_tipo(codigo: str):
-    codigo_limpo = str(codigo).strip().upper()
-    if codigo_limpo in DISCIPLINAS_MAPEADAS:
-        return DISCIPLINAS_MAPEADAS[codigo_limpo], "Obrigatória"
-    return "Optativa", "Optativa"
+
+def carregar_mapa_matriz_curricular(curriculo: str) -> dict:
+    """
+    Busca no Supabase a matriz curricular para o currículo informado
+    e constrói um dicionário de mapeamento no formato:
+    { 'CODIGO_DISCIPLINA': (Fase, Tipo) }
+    """
+    df_matriz = obter_matriz_por_curriculo(curriculo)
+    mapa = {}
+
+    if df_matriz is not None and not df_matriz.empty:
+        col_codigo = "codigo_disciplina" if "codigo_disciplina" in df_matriz.columns else "codigo"
+        for _, row in df_matriz.iterrows():
+            cod = str(row.get(col_codigo, "")).strip().upper()
+            fase = str(row.get("fase", "Optativa")).strip()
+            tipo_bruto = str(row.get("tipo", "Op")).strip()
+
+            # Padronização amigável de 'Ob' e 'Op'
+            if tipo_bruto.upper() in ["OB", "OBRIGATÓRIA", "OBRIGATORIA"]:
+                tipo = "Obrigatória"
+            elif tipo_bruto.upper() in ["OP", "OPTATIVA"]:
+                tipo = "Optativa"
+            else:
+                tipo = tipo_bruto
+
+            mapa[cod] = (fase, tipo)
+
+    return mapa
+
 
 def separar_horario_e_local(texto_horario_local: str):
+    """Separa strings do formato 'Horário / Local | Horário / Local' em colunas individuais."""
     if not texto_horario_local or pd.isna(texto_horario_local):
         return "N/A", "N/A"
 
@@ -69,7 +61,9 @@ def separar_horario_e_local(texto_horario_local: str):
 
     return " | ".join(horarios), " | ".join(locais)
 
+
 def filtrar_turmas_invalidas(df: pd.DataFrame) -> pd.DataFrame:
+    """Remove turmas canceladas, de intercâmbio ou sem horário/local definidos."""
     mascara_cancelada = (
         df["Nome da Disciplina"].astype(str).str.contains(r"\[Cancelada\]|cancelada", case=False, na=False) |
         df["Professor"].astype(str).str.contains(r"Disciplina Cancelada|cancelada", case=False, na=False)
@@ -81,13 +75,15 @@ def filtrar_turmas_invalidas(df: pd.DataFrame) -> pd.DataFrame:
 
     return df[~(mascara_cancelada | mascara_intercambio | mascara_sem_horario)].copy()
 
+
 def alocar_optativas_nas_fases(df: pd.DataFrame) -> pd.DataFrame:
+    """Distribui alternadamente as disciplinas optativas entre a 5ª e a 6ª Fase para exibição."""
     if df.empty or "Fase" not in df.columns:
         return df
 
     contador_optativa = 0
     for idx, row in df.iterrows():
-        if row["Fase"] == "Optativa":
+        if row["Fase"] in ["Optativa", "Optativas"]:
             if contador_optativa % 2 == 0:
                 df.at[idx, "Fase"] = "5ª Fase"
             else:
@@ -95,6 +91,7 @@ def alocar_optativas_nas_fases(df: pd.DataFrame) -> pd.DataFrame:
             contador_optativa += 1
 
     return df
+
 
 # ____________________________________________________
 # Análise de Código UFSC e Choques de Horário
@@ -105,6 +102,7 @@ def eh_turno_matutino(horario_bruto: str) -> bool:
     s = str(horario_bruto)
     codigos_manha = [".0730", ".0820", ".0910", ".1010", ".1100"]
     return any(c in s for c in codigos_manha)
+
 
 def extrair_slots_horario_bruto(horario_bruto: str) -> list:
     if not horario_bruto or pd.isna(horario_bruto):
@@ -133,6 +131,7 @@ def extrair_slots_horario_bruto(horario_bruto: str) -> list:
 
     return slots
 
+
 def tem_choque_com_fase_bruto(df: pd.DataFrame, col_horario: str, codigo_alvo: str, turma_alvo: str, fase_destino: str, slots_turma: list) -> bool:
     if not slots_turma:
         return False
@@ -154,7 +153,9 @@ def tem_choque_com_fase_bruto(df: pd.DataFrame, col_horario: str, codigo_alvo: s
 
     return False
 
+
 def ajustar_fases_especiais_e_choques(df: pd.DataFrame, col_horario: str) -> pd.DataFrame:
+    """Aplica regras de alocação anti-choque para disciplinas específicas como CIN7412 e CIN7309."""
     if df.empty:
         return df
 
@@ -187,6 +188,7 @@ def ajustar_fases_especiais_e_choques(df: pd.DataFrame, col_horario: str) -> pd.
 
     return df
 
+
 def duplicar_ine5111_para_ambas_fases(df: pd.DataFrame) -> pd.DataFrame:
     """Garante que a disciplina INE5111 seja projetada tanto na 2ª quanto na 4ª Fase para visualização nas grades."""
     if df.empty:
@@ -196,7 +198,6 @@ def duplicar_ine5111_para_ambas_fases(df: pd.DataFrame) -> pd.DataFrame:
     for idx, row in df.iterrows():
         codigo = str(row.get("Código da Disciplina", "")).strip().upper()
         if codigo == "INE5111":
-            # Cria registro adicional alocado na 4ª Fase
             copia_4a = row.copy()
             copia_4a["Fase"] = "4ª Fase"
             novas_linhas.append(copia_4a)
@@ -206,32 +207,11 @@ def duplicar_ine5111_para_ambas_fases(df: pd.DataFrame) -> pd.DataFrame:
 
     return df
 
-def enriquecer_com_tipo_nucleo(df: pd.DataFrame, supabase_client=None) -> pd.DataFrame:
-    if df.empty or supabase_client is None:
-        if "Tipo de Disciplina" not in df.columns:
-            df["Tipo de Disciplina"] = "Específico"
-        return df
 
-    try:
-        res = supabase_client.table("disciplinas_matriz").select("*").execute()
-        if res.data:
-            df_matriz = pd.DataFrame(res.data)
-            col_matriz = "codigo" if "codigo" in df_matriz.columns else "codigo_disciplina"
-            df_matriz = df_matriz.rename(columns={col_matriz: "Código da Disciplina"})
-
-            df = pd.merge(df, df_matriz, on="Código da Disciplina", how="left")
-
-            if "tipo_nucleo" in df.columns:
-                df["Tipo de Disciplina"] = df["tipo_nucleo"].fillna("Específico")
-                df.drop(columns=["tipo_nucleo"], inplace=True)
-
-    except Exception:
-        if "Tipo de Disciplina" not in df.columns:
-            df["Tipo de Disciplina"] = "Específico"
-
-    return df
-
-def aplicar_tratamento_completo(dados_brutos: list, caminho_pdf: str, supabase_client=None) -> pd.DataFrame:
+# ____________________________________________________
+# Função Principal do Módulo de Tratamento
+# ____________________________________________________
+def aplicar_tratamento_completo(dados_brutos: list, caminho_pdf: str, supabase_client=None, curriculo: str = "20161") -> pd.DataFrame:
     df = pd.DataFrame(dados_brutos)
     if df.empty:
         return df
@@ -242,12 +222,21 @@ def aplicar_tratamento_completo(dados_brutos: list, caminho_pdf: str, supabase_c
     # 2. Inserção do Semestre
     df["Semestre"] = extrair_semestre_do_nome_arquivo(caminho_pdf)
 
-    # 3. Mapeamento Unificado de Fase e Tipo (Usa Mapeamento Completo)
-    fases_tipos = df["Código da Disciplina"].apply(mapear_fase_e_tipo)
+    # 3. Busca dinâmica da matriz no Supabase para o currículo selecionado ('20161' ou '20261')
+    mapa_matriz = carregar_mapa_matriz_curricular(curriculo)
+
+    def mapear_fase_e_tipo_dinamico(codigo: str):
+        cod_limpo = str(codigo).strip().upper()
+        if cod_limpo in mapa_matriz:
+            return mapa_matriz[cod_limpo]
+        return "Optativa", "Optativa"
+
+    # Mapeamento de Fase e Tipo (Obrigatória/Optativa) via banco de dados
+    fases_tipos = df["Código da Disciplina"].apply(mapear_fase_e_tipo_dinamico)
     df["Fase"] = [item[0] for item in fases_tipos]
     df["Tipo"] = [item[1] for item in fases_tipos]
 
-    # 4. Ajuste Dinâmico de Turnos e Anti-Choque (DEVE RODAR ANTES DA SEPARAÇÃO DE HORÁRIO/LOCAL)
+    # 4. Ajuste Dinâmico de Turnos e Anti-Choque
     col_origem_horario = "Horário/Local" if "Horário/Local" in df.columns else "Horario_Local"
     df = ajustar_fases_especiais_e_choques(df, col_horario=col_origem_horario)
 
@@ -263,13 +252,10 @@ def aplicar_tratamento_completo(dados_brutos: list, caminho_pdf: str, supabase_c
     # 7. Alocação de Optativas Legítimas
     df = alocar_optativas_nas_fases(df)
 
-    # 8. Enriquecimento de Núcleo via Supabase (Comum vs. Específico)
-    df = enriquecer_com_tipo_nucleo(df, supabase_client)
-
-    # 9. Reordenação e seleção de colunas finais
+    # 8. Reordenação e seleção de colunas finais
     colunas_finais = [
         "Semestre", "Código da Disciplina", "Turma", "Nome da Disciplina",
-        "Fase", "Tipo", "Tipo de Disciplina", "Horas Aula", "Ofertas", "Horário", "Local", "Professor"
+        "Fase", "Tipo", "Horas Aula", "Ofertas", "Horário", "Local", "Professor"
     ]
     colunas_presentes = [c for c in colunas_finais if c in df.columns]
 

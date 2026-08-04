@@ -1,4 +1,4 @@
--- 1. Criação da tabela de matriz curricular
+'''-- 1. Criação da tabela de matriz curricular
 CREATE TABLE IF NOT EXISTS matriz_curricular (
     id SERIAL PRIMARY KEY,
     codigo_disciplina VARCHAR(10) NOT NULL,
@@ -214,4 +214,4 @@ INSERT INTO matriz_curricular (codigo_disciplina, nome_disciplina, fase, tipo, c
 ('CIN7923', 'Atividades Complementares', 'Atividades Complementares', 'Op', '20261'),
 
 -- Rol de Atividades de Extensão
-('CIN1113', 'Atividades de Extensão (ações em projetos, cursos e eventos)', 'Atividades de Extensão', 'Op', '20261');
+('CIN1113', 'Atividades de Extensão (ações em projetos, cursos e eventos)', 'Atividades de Extensão', 'Op', '20261');'''

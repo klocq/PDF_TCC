@@ -67,3 +67,19 @@ def salvar_turmas_no_banco(df_dados: pd.DataFrame):
 
     except Exception as e:
         print(f"[ERRO] Falha ao salvar no Supabase: {e}")
+
+# Adicione no final do arquivo banco.py
+
+def obter_matriz_por_curriculo(curriculo_selecionado: str) -> pd.DataFrame:
+    """Busca a matriz curricular no Supabase para o currículo selecionado (ex: '20161' ou '20261')."""
+    try:
+        # Puxa os dados da tabela criada
+        resposta = supabase.table("matriz_curricular").select("*").eq("curriculo", curriculo_selecionado).execute()
+        
+        # Converte para DataFrame do Pandas
+        if resposta.data:
+            return pd.DataFrame(resposta.data)
+        return pd.DataFrame() # Retorna vazio se não achar nada
+    except Exception as e:
+        print(f"Erro ao buscar matriz no banco: {e}")
+        return pd.DataFrame()
