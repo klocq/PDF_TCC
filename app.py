@@ -35,6 +35,21 @@ st.title("📚 Sistema de Gestão Curricular e Turmas - CI / UFSC")
 # Criação das Abas Principais
 aba_upload, aba_consulta = st.tabs(["📤 Envio de Arquivos (ETL)", "🔍 Consulta e Grade Horária"])
 
+# --- ADICIONE ESTE BLOCO NA BARRA LATERAL ---
+st.sidebar.header("⚙️ Configurações do Processamento")
+
+opcoes_curriculo = {
+    "Currículo 2016.1": "20161",
+    "Currículo 2026.1": "20261"
+}
+escolha_usuario = st.sidebar.selectbox(
+    "Selecione a Versão do Currículo:",
+    options=list(opcoes_curriculo.keys())
+)
+curriculo_selecionado = opcoes_curriculo[escolha_usuario]
+st.sidebar.markdown("---")
+
+
 # ==========================================
 # ABA 1: UPLOAD E PROCESSAMENTO DE PDF
 # ==========================================
@@ -62,8 +77,7 @@ with aba_upload:
                     f.write(pdf_enviado.getbuffer())
                 
                 # Executa o pipeline apenas com o arquivo fornecido pelo usuário
-                sucesso, msg = processar_pdf_individual(caminho_pdf_entrada, caminho_excel_saida)
-                
+                sucesso, msg = processar_pdf_individual(caminho_pdf_entrada, caminho_excel_saida, curriculo=curriculo_selecionado)
                 if sucesso:
                     st.session_state["pdf_processado"] = True  # <-- NOVO: DESTRANCA A CONSULTA!
                     st.success(msg)
