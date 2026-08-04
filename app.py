@@ -28,7 +28,7 @@ st.set_page_config(
 if "pdf_processado" not in st.session_state:
     st.session_state["pdf_processado"] = False
 
-st.title("📚 Sistema de Gestão Curricular e Turmas - CI / UFSC")
+
 
 st.title("📚 Sistema de Gestão Curricular e Turmas - CI / UFSC")
 
