@@ -28,7 +28,7 @@ def carregar_mapa_matriz_curricular(curriculo: str) -> dict:
             cod = str(row.get(col_codigo, "")).strip().upper()
             fase = str(row.get("fase", "Optativa")).strip()
             tipo_bruto = str(row.get("tipo", "Op")).strip()
-            nucleo = str(row.get("nucleo", "Comun")).strip()
+            nucleo = str(row.get("nucleo", "Comum")).strip()
 
             # Padronização amigável de 'Ob' e 'Op'
             if tipo_bruto.upper() in ["OB", "OBRIGATÓRIA", "OBRIGATORIA"]:
@@ -137,17 +137,29 @@ def tem_choque_com_fase_bruto(df: pd.DataFrame, col_horario: str, codigo_alvo: s
     if not slots_turma:
         return False
 
+    # 1. Identifica o Local/Sala da turma alvo
+    linha_alvo = df[(df["Código da Disciplina"] == codigo_alvo) & (df["Turma"] == turma_alvo)]
+    local_alvo = linha_alvo["Local"].values[0] if not linha_alvo.empty and "Local" in df.columns else ""
+
+    # 2. Máscara no Pandas:
+    # - Filtra turmas da fase destino
+    # - Ignora a mesma disciplina se for a própria turma OU se for na mesma sala (turma conjunta)
+    mascara_propria_turma = (df["Código da Disciplina"] == codigo_alvo) & (df["Turma"] == turma_alvo)
+    mascara_turma_conjunta = (df["Código da Disciplina"] == codigo_alvo) & (df["Local"] == local_alvo)
+
     outras_turmas = df[
         (df["Fase"] == fase_destino) & 
-        ~((df["Código da Disciplina"] == codigo_alvo) & (df["Turma"] == turma_alvo))
+        ~(mascara_propria_turma | mascara_turma_conjunta)
     ]
 
+    # 3. Mapeia os horários ocupados pelas turmas restantes
     slots_fase = set()
     for _, row in outras_turmas.iterrows():
         hor = row.get(col_horario, "")
         for slot in extrair_slots_horario_bruto(hor):
             slots_fase.add(slot)
 
+    # 4. Checa choque de horários
     for slot in slots_turma:
         if slot in slots_fase:
             return True
@@ -232,10 +244,11 @@ def aplicar_tratamento_completo(dados_brutos: list, caminho_pdf: str, supabase_c
             return mapa_matriz[cod_limpo]
         return "Optativa", "Optativa"
 
-    # Mapeamento de Fase e Tipo (Obrigatória/Optativa) via banco de dados
-    fases_tipos = df["Código da Disciplina"].apply(mapear_fase_e_tipo_dinamico)
-    df["Fase"] = [item[0] for item in fases_tipos]
-    df["Tipo"] = [item[1] for item in fases_tipos]
+    # Mapeamento de Fase, Tipo e Núcleo via banco de dados
+    fases_tipos_nucleos = df["Código da Disciplina"].apply(mapear_fase_e_tipo_dinamico)
+    df["Fase"] = [item[0] for item in fases_tipos_nucleos]
+    df["Tipo"] = [item[1] for item in fases_tipos_nucleos]
+    df["Núcleo"] = [item[2] for item in fases_tipos_nucleos]  # <-- NOVO: Adiciona a coluna de Núcleo
 
     # 4. Ajuste Dinâmico de Turnos e Anti-Choque
     col_origem_horario = "Horário/Local" if "Horário/Local" in df.columns else "Horario_Local"
@@ -256,7 +269,7 @@ def aplicar_tratamento_completo(dados_brutos: list, caminho_pdf: str, supabase_c
     # 8. Reordenação e seleção de colunas finais
     colunas_finais = [
         "Semestre", "Código da Disciplina", "Turma", "Nome da Disciplina",
-        "Fase", "Tipo", "Horas Aula", "Ofertas", "Horário", "Local", "Professor"
+        "Fase", "Tipo", "Núcleo", "Horas Aula", "Ofertas", "Horário", "Local", "Professor"
     ]
     colunas_presentes = [c for c in colunas_finais if c in df.columns]
 
