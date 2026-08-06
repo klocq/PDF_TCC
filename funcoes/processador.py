@@ -139,6 +139,5 @@ def processar_texto_bruto(texto_bruto):
                 }
                 dados_estruturados.append(registro)
 
-    # Note que NÃO chamamos mais a função de "aplicar_fases_novas" aqui!
     # Devolvemos apenas os dados limpos extraídos.
     return dados_estruturados

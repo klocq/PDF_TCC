@@ -28,6 +28,7 @@ def carregar_mapa_matriz_curricular(curriculo: str) -> dict:
             cod = str(row.get(col_codigo, "")).strip().upper()
             fase = str(row.get("fase", "Optativa")).strip()
             tipo_bruto = str(row.get("tipo", "Op")).strip()
+            nucleo = str(row.get("nucleo", "Comun")).strip()
 
             # Padronização amigável de 'Ob' e 'Op'
             if tipo_bruto.upper() in ["OB", "OBRIGATÓRIA", "OBRIGATORIA"]:
@@ -37,7 +38,7 @@ def carregar_mapa_matriz_curricular(curriculo: str) -> dict:
             else:
                 tipo = tipo_bruto
 
-            mapa[cod] = (fase, tipo)
+            mapa[cod] = (fase, tipo, nucleo)
 
     return mapa
 

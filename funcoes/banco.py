@@ -71,7 +71,7 @@ def salvar_turmas_no_banco(df_dados: pd.DataFrame):
 # Adicione no final do arquivo banco.py
 
 def obter_matriz_por_curriculo(curriculo_selecionado: str) -> pd.DataFrame:
-    """Busca a matriz curricular no Supabase para o currículo selecionado (ex: '20161' ou '20261')."""
+    """Busca a matriz curricular no Supabase para o currículo selecionado ."""
     try:
         # Puxa os dados da tabela criada
         resposta = supabase.table("matriz_curricular").select("*").eq("curriculo", curriculo_selecionado).execute()
